@@ -1,0 +1,20 @@
+{
+"filters" : [    
+  {"id" : "FirstinPair",
+   "isFirstMate" : "true"
+  },     
+  {"id" : "R",
+   "isReverseStrand" : "false"
+  },
+  {"id" : "S",
+   "isReverseStrand" : "true"
+  },
+  {"id" : "SecondinPair",
+   "isFirstMate" : "false"
+  },
+  {"id" : "P",
+   "isPaired" : "true"
+  }
+],
+"rule": "(P&FirstinPair & R) | (P&SecondinPair & S)"
+}
