@@ -15,7 +15,7 @@ fi
 
 #iterates through list of accessions and passes to mapping script
 
-outdir="./MappingOutput"
+outdir="../MappingOutput"
 bamPath="${outdir}/FastqFiles" #fastq directory generate by https://github.com/UGALewisLab/downloadSRA.git
 
 
