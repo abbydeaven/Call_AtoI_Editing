@@ -7,8 +7,8 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=20gb
 #SBATCH --time=8:00:00
-#SBATCH --output=../MappingOutput/logs/MapRNAseq.%j.out
-#SBATCH --error=./MappingOutput/logs/MapRNAseq.%j.err
+#SBATCH --output=../MappingOutput/logs/atoi.%j.out
+#SBATCH --error=./MappingOutput/logs/atoi.%j.err
 
 cd $SLURM_SUBMIT_DIR
 
@@ -50,9 +50,14 @@ name=$(echo "$accession" | sed -E 's/_S[0-9]{1}_L[0-9]{3}//')
 deduped_dir=${outdir}/DedupedBams
 mkdir ${deduped_dir}
 
+split_reads=${outdir}/SplitBams
+mkdir ${split_reads}
 
 tmp=${deduped_dir}/${accession}_tmp.bam
 deduped=${deduped_dir}/${accession}_deduped.bam
+
+forward=${split_reads}/${accession}_sense.bam
+reverse=${split_reads}/${accession}_antisense.bam
 # remove duplicates from bam file
  ml SAMtools/1.21-GCC-13.3.0
  ml BWA/0.7.18-GCCcore-13.3.0
@@ -73,3 +78,11 @@ deduped=${deduped_dir}/${accession}_deduped.bam
 
  # split forward and reverse reads
  ml BamTools/2.5.2-GCC-13.3.0
+
+ bamtools filter -script filter_fwd.txt -in ${deduped} -out ${forward}
+   samtools index -@ $THREADS ${forward}
+
+ bamtools filter -script filter_rev.txt -in ${deduped} -out ${reverse}
+   samtools index -@ $THREADS ${reverse}
+
+  
