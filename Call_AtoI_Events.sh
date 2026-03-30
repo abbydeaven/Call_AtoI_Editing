@@ -15,7 +15,6 @@ cd $SLURM_SUBMIT_DIR
 THREADS=2
 
 ## these variables will read in from an input file; setting directly for testing.
-accession=WT1
 outdir=/scratch/ad45368/fsd1/MappingOutput
 bamPath=/scratch/ad45368/fsd1/MappingOutput/bamFiles
 
@@ -53,6 +52,9 @@ mkdir ${deduped_dir}
 split_reads=${outdir}/SplitBams
 mkdir ${split_reads}
 
+tables=${outdir}/EditTables
+mkdir ${tables}
+
 tmp=${deduped_dir}/${accession}_tmp.bam
 deduped=${deduped_dir}/${accession}_deduped.bam
 
@@ -85,4 +87,22 @@ reverse=${split_reads}/${accession}_antisense.bam
  bamtools filter -script filter_rev.txt -in ${deduped} -out ${reverse}
    samtools index -@ $THREADS ${reverse}
 
-  
+# create virtual environment for REDItools
+ml Python/3.11.3-GCCcore-12.3.0
+ml HTSlib/1.9-GCC-11.2.0
+# python -m venv ~/env/python_REDItools
+
+#git clone https://github.com/tflati/reditools2.0.git
+#cd reditools2.0
+
+ #pip install -r requirements.txt
+ #pip install --upgrade pip
+ 
+ . ~/env/python_REDItools/bin/activate
+
+ python ~/reditools2.0/src/cineca/reditools.py -f ${forward} -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna  -o ${tables}/${accession}_forward_edits.txt -q 25 -bq 25 -me 3 -mbp 7
+ python  ~/reditools2.0/src/cineca/reditools.py -f ${reverse} -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna  -o ${tables}/${accession}_reverse_edits.txt -q 25 -bq 25 -me 3 -mbp 7
+
+deactivate
+
+ 
