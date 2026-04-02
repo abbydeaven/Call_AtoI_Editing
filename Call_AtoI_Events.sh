@@ -5,7 +5,7 @@
 #SBATCH --mail-user=YOUREMAIL@EMAIL.COM
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=20gb
+#SBATCH --mem=60gb
 #SBATCH --time=8:00:00
 #SBATCH --output=../MappingOutput/logs/atoi.%j.out
 #SBATCH --error=./MappingOutput/logs/atoi.%j.err
@@ -61,17 +61,40 @@ deduped=${deduped_dir}/${accession}_deduped.bam
 forward=${split_reads}/${accession}_sense.bam
 reverse=${split_reads}/${accession}_antisense.bam
 # remove duplicates from bam file
- ml SAMtools/1.21-GCC-13.3.0
- ml BWA/0.7.18-GCCcore-13.3.0
+ml GCC/11.2.0
+ ml SAMtools/1.14-GCC-11.2.0
+# ml BWA/0.7.18-GCCcore-13.3.0
  ml picard/3.3.0-Java-17
  ml R/4.4.2-gfbf-2024a
- 
- samtools addreplacerg -r "@RG\tID:RG1\tSM:SampleName\tPL:Illumina\tLB:Library.fa" -o ${tmp} $bam
 
+echo "Step 1: Checking and fixing read names..."
+samtools view -h ${bam} | \
+  awk 'BEGIN {FS=OFS="\t"; c=1} 
+  /^@/ { print; next }
+  {
+    # Ensure read name has required format for MarkDuplicates
+    # STAR output: SRR#.position or similar
+    # Picard expects: name:tile:x:y:duplicate
+    if ($1 !~ /:[0-9]+:[0-9]+:[0-9]+/) {
+      # Add dummy tile:x:y:dup
+      $1 = $1 ":0:0:0:" (c % 2)
+      c++
+    }
+    print
+  }' | samtools view -b -o ${tmp}.fixed.bam -
+
+bam=${tmp}.fixed.bam
+
+# Then continue with addreplacerg and MarkDuplicates
+samtools addreplacerg -r "@RG\tID:RG1\tSM:SampleName\tPL:Illumina\tLB:Library" -o ${tmp} ${bam}
+samtools sort ${tmp} ${tmp}.sort.bam
+
+  
   java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
-      --INPUT ${tmp} \
+      --INPUT ${tmp}.sort.bam \
       --OUTPUT ${deduped} \
       -M ${deduped_dir}/${accession}.marked_dup_metrics.txt \
+      --OPTICAL_DUPLICATE_PIXEL_DISTANCE -1 \ 
       --REMOVE_DUPLICATES TRUE
 
  #index again
@@ -88,7 +111,7 @@ reverse=${split_reads}/${accession}_antisense.bam
    samtools index -@ $THREADS ${reverse}
 
 # create virtual environment for REDItools
-ml Python/3.11.3-GCCcore-12.3.0
+ml Python/3.9.6-GCCcore-11.2.0
 ml HTSlib/1.9-GCC-11.2.0
 # python -m venv ~/env/python_REDItools
 
