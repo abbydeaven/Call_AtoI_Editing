@@ -61,8 +61,8 @@ deduped=${deduped_dir}/${accession}_deduped.bam
 forward=${split_reads}/${accession}_sense.bam
 reverse=${split_reads}/${accession}_antisense.bam
 # remove duplicates from bam file
-ml GCC/11.2.0
- ml SAMtools/1.14-GCC-11.2.0
+ml GCC/11.3.0
+ ml SAMtools/1.16.1-GCC-11.3.0
 # ml BWA/0.7.18-GCCcore-13.3.0
  ml picard/3.3.0-Java-17
  ml R/4.4.2-gfbf-2024a
@@ -87,11 +87,11 @@ bam=${tmp}.fixed.bam
 
 # Then continue with addreplacerg and MarkDuplicates
 samtools addreplacerg -r "@RG\tID:RG1\tSM:SampleName\tPL:Illumina\tLB:Library" -o ${tmp} ${bam}
-samtools sort ${tmp} ${tmp}.sort.bam
+samtools sort ${tmp} -o ${deduped_dir}/${accession}_sorted.tmp.bam
 
   
   java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
-      --INPUT ${tmp}.sort.bam \
+      --INPUT ${deduped_dir}/${accession}_sorted.tmp.bam \
       --OUTPUT ${deduped} \
       -M ${deduped_dir}/${accession}.marked_dup_metrics.txt \
       --OPTICAL_DUPLICATE_PIXEL_DISTANCE -1 \ 
@@ -102,7 +102,7 @@ samtools sort ${tmp} ${tmp}.sort.bam
  rm ${tmp}
 
  # split forward and reverse reads
- ml BamTools/2.5.2-GCC-13.3.0
+ ml BamTools/2.5.2-GCC-11.3.0
 
  bamtools filter -script filter_fwd.txt -in ${deduped} -out ${forward}
    samtools index -@ $THREADS ${forward}
@@ -111,8 +111,8 @@ samtools sort ${tmp} ${tmp}.sort.bam
    samtools index -@ $THREADS ${reverse}
 
 # create virtual environment for REDItools
-ml Python/3.9.6-GCCcore-11.2.0
-ml HTSlib/1.9-GCC-11.2.0
+ml Python/3.10.4-GCCcore-11.3.0
+ml HTSlib/1.15.1-GCC-11.3.0
 # python -m venv ~/env/python_REDItools
 
 #git clone https://github.com/tflati/reditools2.0.git
