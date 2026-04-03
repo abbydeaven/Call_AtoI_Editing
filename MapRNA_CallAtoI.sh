@@ -71,8 +71,6 @@ counts2="${outdir}/counts2/${name}_fungidb_counts.txt"
 #bam=${bamPath}/${accession}_Aligned.sortedByCoord.out.bam
 
 #make output file folders
-name=$(echo "$accession" | sed -E 's/_S[0-9]{1}_L[0-9]{3}//')
-
 deduped_dir=${outdir}/DedupedBams
 mkdir ${deduped_dir}
 
@@ -167,7 +165,7 @@ elif [ -f $read2 ]; then
   #################
   	  module load Trim_Galore/0.6.10-GCCcore-12.3.0
 
- 	  trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1 $read2
+ 	  trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1b $read2b
   	  wait
 
 
@@ -215,7 +213,7 @@ elif [ -f $read2 ]; then
 #in rare cases there will only be a SRR##_1.fastq.gz format. Use this if nothing else exists.
 else
 
-    echo "${accesion} running as Read1 file only"
+    echo "${accession} running as Read1 file only"
 
        trim_galore --illumina --fastqc --length 25 --basename ${name} --gzip -o $trimmed $read1
 
@@ -292,8 +290,7 @@ java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
     --INPUT ${tmp3} \
     --OUTPUT ${deduped} \
     -M ${deduped_dir}/${accession}.marked_dup_metrics.txt \
-    --OPTICAL_DUPLICATE_PIXEL_DISTANCE -1 \ 
-    --REMOVE_DUPLICATES TRUE
+    --OPTICAL_DUPLICATE_PIXEL_DISTANCE -1 --REMOVE_DUPLICATES TRUE
 
     #index again
     samtools index -@ $THREADS ${deduped}
