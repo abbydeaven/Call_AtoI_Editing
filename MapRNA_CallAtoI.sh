@@ -309,4 +309,30 @@ java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
    ml Python/3.10.4-GCCcore-11.3.0
    ml HTSlib/1.15.1-GCC-11.3.0
 
+ . ~/env/python_REDItools/bin/activate
+
+ python ~/reditools2.0/src/cineca/reditools.py -f ${forward} \
+  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+  -o ${tables}/${accession}_forward_edits.txt \
+  -q 25 \                    # min-read-quality (mapping quality)
+  -bq 25 \                   # min-base-quality
+  -l 10 \                    # min-column-length (coverage)
+  -me 3 \                    # min-edits (matches -v 3)
+  -men 0.03 \                # min-edits-per-nucleotide (matches -n 0.03)
+  -mbp 6 -Mbp 0 \            # trim bases (matches -a 6-0)
+  -s 1 -C                    # strand inference and correction
+
+  python ~/reditools2.0/src/cineca/reditools.py -f ${reverse} \
+  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+  -o ${tables}/${accession}_reverse_edits.txt \
+  -q 25 \                    # min-read-quality (mapping quality)
+  -bq 25 \                   # min-base-quality
+  -l 10 \                    # min-column-length (coverage)
+  -me 3 \                    # min-edits (matches -v 3)
+  -men 0.03 \                # min-edits-per-nucleotide (matches -n 0.03)
+  -mbp 6 -Mbp 0 \            # trim bases (matches -a 6-0)
+  -s 1 -C                    # strand inference and correction
+
+deactivate
+
 
