@@ -36,8 +36,8 @@ THREADS=2
 
 ###################################
 #input file variables. first check for accessions that have separate folders.
-  read1=${fastqPath}/${accession}/${accession}_1.fastq.gz
-  read2=${fastqPath}/${accession}/${accession}_2.fastq.gz
+  read1=${fastqPath}/${accession}_1.fastq.gz
+  read2=${fastqPath}/${accession}_2.fastq.gz
 
 # make variables for other reads that are dumped together. my sample names are formated like this: OE1_S0_L001_R1_001.fastq.gz
   read1b=${fastqPath}/${accession}_R1_001.fastq.gz
@@ -109,7 +109,7 @@ if [ ! -f $read1 ]; then
 
   module load Trim_Galore/0.6.10-GCCcore-12.3.0
 
-trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1 $read2
+trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1b $read2b
   wait
 
 
@@ -165,7 +165,7 @@ elif [ -f $read2 ]; then
   #################
   	  module load Trim_Galore/0.6.10-GCCcore-12.3.0
 
- 	  trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1b $read2b
+ 	  trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1 $read2
   	  wait
 
 
@@ -208,57 +208,6 @@ elif [ -f $read2 ]; then
            module load deepTools/3.5.5-gfbf-2023a
              #Plot all reads
            bamCoverage -p $THREADS -bs 50 --normalizeUsing BPM -of bigwig -b "${bam}Aligned.sortedByCoord.out.bam" -o "${bw}"
-
-
-#in rare cases there will only be a SRR##_1.fastq.gz format. Use this if nothing else exists.
-else
-
-    echo "${accession} running as Read1 file only"
-
-       trim_galore --illumina --fastqc --length 25 --basename ${name} --gzip -o $trimmed $read1
-
-       #map with STAR
-       module load STAR/2.7.11b-GCC-13.3.0
-
-         STAR --runMode alignReads \
-         --runThreadN $THREADS \
-         --genomeDir /home/zlewis/Genomes/Neurospora/Nc12_RefSeq/STAR \
-         --outFileNamePrefix ${name} \
-         --readFilesIn ${name}_1_trimmed.fq.gz  \
-         --readFilesCommand zcat \
-         --alignIntronMax 10000 \
-         --outSAMtype BAM SortedByCoordinate \
-         --outSAMunmapped Within \
-         --outSAMattributes Standard \
-         --outBAMsortingBinsN 100 \
-         --outSAMunmapped Within \
-         --outSAMattributes Standard \
-         --limitBAMsortRAM 20455724800
-
-
-         #create index
-         module load SAMtools/1.21-GCC-13.3.0
-         samtools index "${bam}Aligned.sortedByCoord.out.bam"
-
-         ##quantify with featureCounts
-         module load Subread/2.0.6-GCC-12.3.0
-
-         featureCounts -T $THREADS \
-         -t CDS \
-         -g gene_name \
-         -s 0 --primary \
-         -a /home/ad45368/NcGenome/fungiDB_GFFtoGTF_conversion.gtf  \
-         -o $counts \
-         ${bam}Aligned.sortedByCoord.out.bam
-         cp ${bam}Aligned.sortedByCoord.out.bam ${outdir}/condensed
-
-
-         ##Plot reads to visualize tracks if needed
-         	    module load deepTools/3.5.5-gfbf-2023a
-         	    #Plot all reads
-         	    bamCoverage -p $THREADS -bs 50 --normalizeUsing BPM -of bigwig -b "${bam}Aligned.sortedByCoord.out.bam" -o "${bw}"
-
-
 fi
 
 ml GCC/11.3.0
@@ -318,9 +267,11 @@ java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
   -bq 25 \                   # min-base-quality
   -l 10 \                    # min-column-length (coverage)
   -me 3 \                    # min-edits (matches -v 3)
-  -men 0.03 \                # min-edits-per-nucleotide (matches -n 0.03)
+#  -men 0.03 \                # min-edits-per-nucleotide (matches -n 0.03)
   -mbp 6 -Mbp 0 \            # trim bases (matches -a 6-0)
-  -s 1 -C                    # strand inference and correction
+  -s 1 -C  \
+  -S
+  # strand inference and correction
 
   python ~/reditools2.0/src/cineca/reditools.py -f ${reverse} \
   -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
@@ -329,9 +280,11 @@ java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
   -bq 25 \                   # min-base-quality
   -l 10 \                    # min-column-length (coverage)
   -me 3 \                    # min-edits (matches -v 3)
-  -men 0.03 \                # min-edits-per-nucleotide (matches -n 0.03)
-  -mbp 6 -Mbp 0 \            # trim bases (matches -a 6-0)
-  -s 1 -C                    # strand inference and correction
+#  -men 0.03 \                # min-edits-per-nucleotide (matches -n 0.03)
+  -mbp 6 \
+#  -Mbp 0 \            # trim bases (matches -a 6-0)
+  -s 0 -C   \
+  -S # strand inference and correction
 
 deactivate
 
