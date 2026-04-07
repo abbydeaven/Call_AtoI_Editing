@@ -44,7 +44,7 @@ THREADS=2
   read2b=${fastqPath}/${accession}_R2_001.fastq.gz
 
 #make output file folders
-name=$(echo "$accession" | sed -E 's/_S[0-9]{1}_L[0-9]{3}//')
+name=$(echo "$accession" | sed -E 's/_S[0-9]{1,3}_L[0-9]{3}//')
 trimmed="${outdir}/TrimmedFastQs"
 mkdir $trimmed
 
