@@ -299,7 +299,7 @@ java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
     # split forward and reverse reads
     ml BamTools/2.5.2-GCC-11.3.0
 
-    bamtools filter -script filter_fwd.txt -in ${deduped} -out ${forward}
+    bamtools filter -script filter_forward.txt -in ${deduped} -out ${forward}
       samtools index -@ $THREADS ${forward}
 
     bamtools filter -script filter_rev.txt -in ${deduped} -out ${reverse}
