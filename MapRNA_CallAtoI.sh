@@ -87,10 +87,10 @@ tmp=${tmpdir}/${accession}_tmp.bam
 tmp2=${tmpdir}/${accession}_tmp2.bam
 tmp3=${tmpdir}/${accession}_tmp3.bam
 
-deduped=${deduped_dir}/${accession}_deduped.bam
+deduped=${deduped_dir}/${name}_deduped.bam
 
-forward=${split_reads}/${accession}_sense.bam
-reverse=${split_reads}/${accession}_antisense.bam
+forward=${split_reads}/${name}_sense.bam
+reverse=${split_reads}/${name}_antisense.bam
 
 ############# Read Trimming ##############
 #remove adaptors, trim low quality reads (default = phred 20), length > 25
@@ -313,7 +313,7 @@ java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
 
  python ~/reditools2.0/src/cineca/reditools.py -f ${forward} \
   -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
-  -o ${tables}/${accession}_forward_edits.txt \
+  -o ${tables}/${name}_forward_edits.txt \
   -q 25 \                    # min-read-quality (mapping quality)
   -bq 25 \                   # min-base-quality
   -l 10 \                    # min-column-length (coverage)
@@ -324,7 +324,7 @@ java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
 
   python ~/reditools2.0/src/cineca/reditools.py -f ${reverse} \
   -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
-  -o ${tables}/${accession}_reverse_edits.txt \
+  -o ${tables}/${name}_reverse_edits.txt \
   -q 25 \                    # min-read-quality (mapping quality)
   -bq 25 \                   # min-base-quality
   -l 10 \                    # min-column-length (coverage)
