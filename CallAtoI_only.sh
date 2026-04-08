@@ -77,7 +77,7 @@ mkdir ${deduped_dir}
 split_reads=${outdir}/SplitBams
 mkdir ${split_reads}
 
-tables=${outdir}/EditTables
+tables=${outdir}/EditTables_Redi3
 mkdir ${tables}
 
 tmpdir=${outdir}/Temp
@@ -258,20 +258,35 @@ ml R/4.4.2-gfbf-2024a
    ml Python/3.10.4-GCCcore-11.3.0
    ml HTSlib/1.15.1-GCC-11.3.0
 
- . ~/env/python_REDItools/bin/activate
+# . ~/env/python_REDItools/bin/activate
 
- python ~/reditools2.0/src/cineca/reditools.py -f ${forward} \
-  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
-  -o ${tables}/${name}_forward_edits.gz \
-  -q 25 \                    # min-read-quality (mapping quality)
-  -bq 25 \                   # min-base-quality
-  -l 10 \                    # min-column-length (coverage)
-  -me 3 \                    # min-edits (matches -v 3)
+# Updating to REDItools 3.0
+	ml Miniforge3/24.11.3-0
+	conda create -n REDItools python=3.10 samtools htslib zlib gcc
+		#environment location: /home/ad45368/.conda/envs/REDItools
+	conda update -n base -c conda-forge conda
+
+	source activate  /home/ad45368/.conda/envs/REDItools
+	#	git clone https://github.com/BioinfoUNIBA/REDItools3.git
+	#	pip install REDItools3
+		
+	 python3 -m reditools analyze ${forward} \
+	  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+	  -o ${tables}/${name}_forward_edits.txt \
+	  -l 10 -q 35 -s 2 -me 3 -C -t 2 -mbp 6 
+	deactivate
+# python ~/reditools2.0/src/cineca/reditools.py -f ${forward} \
+#  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+#  -o ${tables}/${name}_forward_edits.gz \
+#  -q 25 \                    # min-read-quality (mapping quality)
+#  -bq 25 \                   # min-base-quality
+#  -l 10 \                    # min-column-length (coverage)
+#  -me 3 \                    # min-edits (matches -v 3)
 #  -men 0.03 \                # min-edits-per-nucleotide (matches -n 0.03)
-  -mbp 6 \            # trim bases (matches -a 6-0)
-  -s 2 -S \
+#  -mbp 6 \            # trim bases (matches -a 6-0)
+#  -s 2 -S \
   # strand inference and correction
- python ~/reditools2.0/src/cineca/reditools_table_to_bed.py  -i ${tables}/${name}_forward_edits.txt -o ${tables}/${name}_forward_edits.bed  
+# python ~/reditools2.0/src/cineca/reditools_table_to_bed.py  -i ${tables}/${name}_forward_edits.txt -o ${tables}/${name}_forward_edits.bed  
 	
 #  python ~/reditools2.0/src/cineca/reditools.py -f ${reverse} \
 #  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
