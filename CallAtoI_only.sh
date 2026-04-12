@@ -274,7 +274,16 @@ ml R/4.4.2-gfbf-2024a
 	  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
 	  -o ${tables}/${name}_forward_edits.txt \
 	  -l 10 -q 35 -s 2 -me 3 -C -t 2 -mbp 6 
+
+	  python3 -m reditools analyze ${reverse} \
+	  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+	  -o ${tables}/${name}_reverse_edits.txt \
+	  -l 10 -q 35 -s 1 -me 3 -C -t 2 -mbp 6 
+
 	deactivate
+
+
+#	 -N, --dna
 # python ~/reditools2.0/src/cineca/reditools.py -f ${forward} \
 #  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
 #  -o ${tables}/${name}_forward_edits.gz \
