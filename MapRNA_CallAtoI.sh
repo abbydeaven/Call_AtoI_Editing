@@ -135,7 +135,8 @@ trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -
   --outBAMsortingBinsN 100 \
   --outSAMunmapped Within \
   --outSAMattributes Standard \
-  --limitBAMsortRAM 20455724800
+  --limitBAMsortRAM 20455724800 \
+  --outSAMattributes NH HI AS nM MD
 
 
    # create index
@@ -191,7 +192,8 @@ elif [ -f $read2 ]; then
       --outBAMsortingBinsN 100 \
       --outSAMunmapped Within \
       --outSAMattributes Standard \
-      --limitBAMsortRAM 20455724800
+      --limitBAMsortRAM 20455724800 \
+	  --outSAMattributes NH HI AS nM MD
 
 
        # create index
@@ -276,25 +278,21 @@ samtools index -@ $THREADS $split_reads/${name}.R2.bam
 # . ~/env/python_REDItools/bin/activate
 
 # Updating to REDItools 3.0
-	ml Miniforge3/24.11.3-0
-
-#	conda create -n REDItools python=3.10 samtools htslib zlib gcc
-		#environment location: /home/ad45368/.conda/envs/REDItools
-#	conda update -n base -c conda-forge conda
-
-	source activate  /home/ad45368/.conda/envs/REDItools3
-	#	git clone https://github.com/BioinfoUNIBA/REDItools3.git
+. ~/env/REDItools3/bin/activate
+#  python3 -m pip install pysam==0.23.3
 	#	pip install REDItools3
+  # python3 -m pip install REDItools3
 
   python3 -m reditools analyze $split_reads/${name}.R1.bam \
-  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+#  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
   -o ${forward_table} \
-  -l 10 -q 20 -s 1 -me 3 -C -t $THREADS -mbp 6 -e -bq 25 -a --verbose
+  --strand 1 --append_file --min-read-quality 20 --min-base-quality 25 --min-base-position 6 --min-read-depth 10 --exclude-multis --strand-correction --THREADS 7 
 
   python3 -m reditools analyze $split_reads/${name}.R2.bam \
-   -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+#   -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
    -o ${reverse_table} \
-   -l 10 -q 20 -s 2 -me 3 -C -t $THREADS -mbp 6 -e -bq 25 -a --verbose
+   --strand 2 --append_file --min-read-quality 20 --min-base-quality 25 --min-base-position 6 --min-read-depth 10 --exclude-multis --strand-correction --THREADS 7 
+
 
 ## annotate with DNA information
 # for SRR samples:
@@ -307,16 +305,17 @@ samtools index -@ $THREADS $split_reads/${name}.R2.bam
 
 
 ## Mapping variants from WT development only
+
   python3 -m reditools analyze $split_reads/${name}.R1.bam \
-  -B DevelopmentEditingSites.bed \
+  --bed_file DevelopmentEditingSites.bed \
   -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
   -o  ${tables}/ConsensusSites/${name}_consensus_edits_fwd.txt \
-  -l 10 -q 20 -s 1 -C -t $THREADS -mbp 6 -e -bq 25 -a --verbose -me 0
+  --strand 1 --append_file --min-read-quality 20 --min-base-quality 25 --min-base-position 6 --min-read-depth 10 --exclude-multis --strand-correction --THREADS 7 --min-edits 0
 
   python3 -m reditools analyze $split_reads/${name}.R2.bam \
-  -B DevelopmentEditingSites.bed \
+  --bed_file DevelopmentEditingSites.bed \
    -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
    -o ${tables}/ConsensusSites/${name}_consensus_edits_rev.txt \
-   -l 10 -q 20 -s 2 -C -t $THREADS -mbp 6 -e -bq 25 -a --verbose -me 0
+   --strand 2 --append_file --min-read-quality 20 --min-base-quality 25 --min-base-position 6 --min-read-depth 10 --exclude-multis --strand-correction --THREADS 7 --min-edits 0
 
 	conda deactivate
