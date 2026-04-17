@@ -12,7 +12,7 @@
 
 cd $SLURM_SUBMIT_DIR
 
-THREADS=2
+THREADS=12
 
 ###ADD a source file with path to FastqF* iles
 #variables imported from submission script
@@ -79,6 +79,7 @@ mkdir ${split_reads}
 
 tables=${outdir}/EditTables_Redi3
 mkdir ${tables}
+mkdir ${tables}/Annotated
 
 tmpdir=${outdir}/Temp
 mkdir $tmpdir
@@ -92,6 +93,12 @@ deduped=${deduped_dir}/${name}_deduped.bam
 forward=${split_reads}/${name}_sense.bam
 reverse=${split_reads}/${name}_antisense.bam
 
+forward_table=${tables}/${name}_forward_edits.txt
+reverse_table=${tables}/${name}_reverse_edits.txt
+
+forward_anno_table=${tables}/Annotated/${name}_anno_forward_edits.txt
+reverse_anno_table=${tables}/Annotated/${name}_anno_reverse_edits.txt
+
 ############# Read Trimming ##############
 #remove adaptors, trim low quality reads (default = phred 20), length > 25
 
@@ -102,20 +109,21 @@ reverse=${split_reads}/${name}_antisense.bam
 
 #if read1 file does not exist, do single-end trimming using the only file in the folder i.e. SRR##.fastq.gz filename format
 ##This entire section can be simplified for JGI data
+ml GCC/12.3.0
 
 # if [ ! -f $read1 ]; then
 # #trim reads
 #   echo "${line} fsd1 sample!"
-#
+# 
 #   module load Trim_Galore/0.6.10-GCCcore-12.3.0
-#
+# 
 # trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1b $read2b
 #   wait
-#
-#
+# 
+# 
 # ##map with STAR
-#
-#   module load STAR/2.7.10b-GCC-11.3.0
+# 
+#   module load STAR/2.7.11a-GCC-12.3.0
 #     STAR --runMode alignReads \
 #   --runThreadN $THREADS \
 #   --genomeDir /home/zlewis/Genomes/Neurospora/Nc12_RefSeq/STAR \
@@ -128,15 +136,15 @@ reverse=${split_reads}/${name}_antisense.bam
 #   --outSAMunmapped Within \
 #   --outSAMattributes Standard \
 #   --limitBAMsortRAM 20455724800
-#
-#
+# 
+# 
 #    # create index
-#     module load SAMtools/1.21-GCC-13.3.0
+#     module load SAMtools/1.18-GCC-12.3.0
 #     samtools index "${bam}Aligned.sortedByCoord.out.bam"
-#
+# 
 #     ##quantify with featureCounts
 #     module load Subread/2.0.6-GCC-12.3.0
-#
+# 
 #     featureCounts -T $THREADS \
 #     -t CDS \
 #     -g gene_name \
@@ -145,33 +153,33 @@ reverse=${split_reads}/${name}_antisense.bam
 #     -a /home/ad45368/NcGenome/fungiDB_GFFtoGTF_conversion.gtf  \
 #     -o $counts \
 #     ${bam}Aligned.sortedByCoord.out.bam
-#
+# 
 #     cp ${bam}Aligned.sortedByCoord.out.bam ${outdir}/bamFiles
-#
+# 
 #     ##Plot reads to visualize tracks if needed
 #        module load deepTools/3.5.5-gfbf-2023a
 #          #Plot all reads
 #        bamCoverage -p $THREADS -bs 50 --normalizeUsing BPM -of bigwig -b "${bam}Aligned.sortedByCoord.out.bam" -o "${bw}"
-#
-#
-#
+# 
+# #
+# #
 # #elseif read2 exists, do paired-end Trimming and PE mapping
 # elif [ -f $read2 ]; then
 #   echo "${line} SRR file!"
-#
-#
+# 
+# 
 #   ##################
 #   #Trimming
 #   #################
 #   	  module load Trim_Galore/0.6.10-GCCcore-12.3.0
-#
+# 
 #  	  trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1 $read2
 #   	  wait
-#
-#
+# 
+# 
 #   ##map with STAR
-#
-#   	  module load STAR/2.7.10b-GCC-11.3.0
+# 
+#   	  module load STAR/2.7.11a-GCC-12.3.0
 #   	  STAR --runMode alignReads \
 #  	    --runThreadN $THREADS \
 #  	    --genomeDir /home/zlewis/Genomes/Neurospora/Nc12_RefSeq/STAR \
@@ -184,15 +192,15 @@ reverse=${split_reads}/${name}_antisense.bam
 #       --outSAMunmapped Within \
 #       --outSAMattributes Standard \
 #       --limitBAMsortRAM 20455724800
-#
-#
+# 
+# 
 #        # create index
-#         module load SAMtools/1.21-GCC-13.3.0
+#         module load SAMtools/1.18-GCC-12.3.0
 #         samtools index "${bam}Aligned.sortedByCoord.out.bam"
-#
+# 
 #         ##quantify with featureCounts
 #         module load Subread/2.0.6-GCC-12.3.0
-#
+# 
 #         featureCounts -T $THREADS \
 #         -t CDS \
 #         -g gene_name \
@@ -201,48 +209,46 @@ reverse=${split_reads}/${name}_antisense.bam
 #         -a /home/ad45368/NcGenome/fungiDB_GFFtoGTF_conversion.gtf  \
 #         -o $counts \
 #         ${bam}Aligned.sortedByCoord.out.bam
-#
+# 
 #         cp ${bam}Aligned.sortedByCoord.out.bam ${outdir}/bamFiles
-#
+# 
 #         ##Plot reads to visualize tracks if needed
 #            module load deepTools/3.5.5-gfbf-2023a
 #              #Plot all reads
 #            bamCoverage -p $THREADS -bs 50 --normalizeUsing BPM -of bigwig -b "${bam}Aligned.sortedByCoord.out.bam" -o "${bw}"
 # fi
 
-ml GCC/11.3.0
-ml SAMtools/1.16.1-GCC-11.3.0
 # ml BWA/0.7.18-GCCcore-13.3.0
 ml picard/3.3.0-Java-17
 ml R/4.4.2-gfbf-2024a
 
-# echo "Step 1: Checking and fixing read names..."
-# samtools view -h ${bam}Aligned.sortedByCoord.out.bam | \
-#   awk 'BEGIN {FS=OFS="\t"; c=1}
-#   /^@/ { print; next }
-#   {
-#     # Ensure read name has required format for MarkDuplicates
-#     # STAR output: SRR#.position or similar
-#     # Picard expects: name:tile:x:y:duplicate
-#     if ($1 !~ /:[0-9]+:[0-9]+:[0-9]+/) {
-#       # Add dummy tile:x:y:dup
-#       $1 = $1 ":0:0:0:" (c % 2)
-#       c++
-#     }
-#     print
-#   }' | samtools view -b -o ${tmp} -
-#
-# samtools addreplacerg -r "@RG\tID:RG1\tSM:SampleName\tPL:Illumina\tLB:Library" -o ${tmp2} ${tmp}
-# samtools sort ${tmp2} -o ${tmp3}
-#
-# java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
-#     --INPUT ${tmp3} \
-#     --OUTPUT ${deduped} \
-#     -M ${deduped_dir}/${accession}.marked_dup_metrics.txt \
-#     --OPTICAL_DUPLICATE_PIXEL_DISTANCE -1 --REMOVE_DUPLICATES TRUE
-#
-#     #index again
-#     samtools index -@ $THREADS ${deduped}
+echo "Step 1: Checking and fixing read names..."
+samtools view -h ${bam}Aligned.sortedByCoord.out.bam | \
+  awk 'BEGIN {FS=OFS="\t"; c=1}
+  /^@/ { print; next }
+  {
+    # Ensure read name has required format for MarkDuplicates
+    # STAR output: SRR#.position or similar
+    # Picard expects: name:tile:x:y:duplicate
+    if ($1 !~ /:[0-9]+:[0-9]+:[0-9]+/) {
+      # Add dummy tile:x:y:dup
+      $1 = $1 ":0:0:0:" (c % 2)
+      c++
+    }
+    print
+  }' | samtools view -b -o ${tmp} -
+
+samtools addreplacerg -r "@RG\tID:RG1\tSM:SampleName\tPL:Illumina\tLB:Library" -o ${tmp2} ${tmp}
+samtools sort ${tmp2} -o ${tmp3}
+
+java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
+    --INPUT ${tmp3} \
+    --OUTPUT ${deduped} \
+    -M ${deduped_dir}/${accession}.marked_dup_metrics.txt \
+    --OPTICAL_DUPLICATE_PIXEL_DISTANCE -1 --REMOVE_DUPLICATES TRUE
+
+    #index again
+    samtools index -@ $THREADS ${deduped}
 #
 #
 #     # split forward and reverse reads
@@ -254,60 +260,63 @@ ml R/4.4.2-gfbf-2024a
 #     bamtools filter -script filter_rev.txt -in ${deduped} -out ${reverse}
 #       samtools index -@ $THREADS ${reverse}
 #
+### Splitting bam files with RSeQC
+ml RSeQC/5.0.4-foss-2023a
+
+split_paired_bam.py -i ${deduped} -o $split_reads/${name}
+samtools index -@ $THREADS $split_reads/${name}.R1.bam
+samtools index -@ $THREADS $split_reads/${name}.R2.bam
+
    # create virtual environment for REDItools
-   ml Python/3.10.4-GCCcore-11.3.0
-   ml HTSlib/1.15.1-GCC-11.3.0
+   ml Python/3.11.3-GCCcore-12.3.0
+   ml Pysam/0.22.0-GCC-12.3.0
+
+#   ml HTSlib/1.15.1-GCC-11.3.0
 
 # . ~/env/python_REDItools/bin/activate
 
 # Updating to REDItools 3.0
 	ml Miniforge3/24.11.3-0
-	conda create -n REDItools python=3.10 samtools htslib zlib gcc
-		#environment location: /home/ad45368/.conda/envs/REDItools
-	conda update -n base -c conda-forge conda
 
-	source activate  /home/ad45368/.conda/envs/REDItools
+#	conda create -n REDItools python=3.10 samtools htslib zlib gcc
+		#environment location: /home/ad45368/.conda/envs/REDItools
+#	conda update -n base -c conda-forge conda
+
+	source activate  /home/ad45368/.conda/envs/REDItools3
 	#	git clone https://github.com/BioinfoUNIBA/REDItools3.git
 	#	pip install REDItools3
-		
-	 python3 -m reditools analyze ${forward} \
-	  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
-	  -o ${tables}/${name}_forward_edits.txt \
-	  -l 10 -q 35 -s 2 -me 3 -C -t 2 -mbp 6 
 
-	  python3 -m reditools analyze ${reverse} \
-	  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
-	  -o ${tables}/${name}_reverse_edits.txt \
-	  -l 10 -q 35 -s 1 -me 3 -C -t 2 -mbp 6 
+  python3 -m reditools analyze $split_reads/${name}.R1.bam \
+  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+  -o ${forward_table} \
+  -l 10 -q 20 -s 1 -me 3 -C -t $THREADS -mbp 6 -e -bq 25 -a --verbose
 
-	deactivate
+  python3 -m reditools analyze $split_reads/${name}.R2.bam \
+   -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+   -o ${reverse_table} \
+   -l 10 -q 20 -s 2 -me 3 -C -t $THREADS -mbp 6 -e -bq 25 -a --verbose
+
+## annotate with DNA information
+# for SRR samples:
+  python3 -m reditools annotate ${tables}/${name}_forward_edits.txt ${tables}/SRR5177532_forward_edits.txt > ${forward_anno_table}
+  python3 -m reditools annotate ${tables}/${name}_reverse_edits.txt ${tables}/SRR5177532_reverse_edits.txt > ${reverse_anno_table}
+#
+# for fsd1 samples:
+#python3 -m reditools annotate ${forward_table} ${tables}/143-4_ChIP_sad1Xfsd1-gfp_GFPtrap_Rep1_forward_edits.txt > ${forward_anno_table}
+#python3 -m reditools annotate ${reverse_table} ${tables}/143-4_ChIP_sad1Xfsd1-gfp_GFPtrap_Rep1_reverse_edits.txt > ${reverse_anno_table}
 
 
-#	 -N, --dna
-# python ~/reditools2.0/src/cineca/reditools.py -f ${forward} \
-#  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
-#  -o ${tables}/${name}_forward_edits.gz \
-#  -q 25 \                    # min-read-quality (mapping quality)
-#  -bq 25 \                   # min-base-quality
-#  -l 10 \                    # min-column-length (coverage)
-#  -me 3 \                    # min-edits (matches -v 3)
-#  -men 0.03 \                # min-edits-per-nucleotide (matches -n 0.03)
-#  -mbp 6 \            # trim bases (matches -a 6-0)
-#  -s 2 -S \
-  # strand inference and correction
-# python ~/reditools2.0/src/cineca/reditools_table_to_bed.py  -i ${tables}/${name}_forward_edits.txt -o ${tables}/${name}_forward_edits.bed  
-	
-#  python ~/reditools2.0/src/cineca/reditools.py -f ${reverse} \
-#  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
-#  -o ${tables}/${name}_reverse_edits.txt \
-#  -q 25 \                    # min-read-quality (mapping quality)
-#  -bq 25 \                   # min-base-quality
-#  -l 10 \                    # min-column-length (coverage)
-#  -me 3 \                    # min-edits (matches -v 3)
-#  -men 0.03 \                # min-edits-per-nucleotide (matches -n 0.03)
-#  -mbp 6 \
-#  -Mbp 0 \            # trim bases (matches -a 6-0)
-#  -s 1   \
-   # strand inference and correction
+## Mapping variants from WT development only
+  python3 -m reditools analyze $split_reads/${name}.R1.bam \
+  -B DevelopmentEditingSites.bed \
+  -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+  -o  ${tables}/ConsensusSites/${name}_consensus_edits_fwd.txt \
+  -l 10 -q 20 -s 1 -C -t $THREADS -mbp 6 -e -bq 25 -a --verbose -me 0
 
-deactivate
+  python3 -m reditools analyze $split_reads/${name}.R2.bam \
+  -B DevelopmentEditingSites.bed \
+   -r ~/NcGenome/GCA_000182925.2_NC12_genomic.fna \
+   -o ${tables}/ConsensusSites/${name}_consensus_edits_rev.txt \
+   -l 10 -q 20 -s 2 -C -t $THREADS -mbp 6 -e -bq 25 -a --verbose -me 0
+
+	conda deactivate
