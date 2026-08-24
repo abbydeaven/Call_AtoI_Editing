@@ -43,17 +43,18 @@ THREADS=12
 # make output file folders
 name=$(echo "$accession" | sed -E 's/_S[0-9]{1,3}_L[0-9]{3}//')
 trimmed="${outdir}/TrimmedFastQs"
-mkdir $trimmed
+mkdir -p "$trimmed"
 
 ## setting variables
 bamdir="${outdir}/bamFiles"
+mkdir -p "$bamdir"
 bam="${bamdir}/${name}_"
 
 countsdir="${outdir}/counts"
-mkdir "${countsdir}"
+mkdir -p "${countsdir}"
 
 bwDir="${outdir}/bigWig"
-mkdir "${bwDir}"
+mkdir -p "${bwDir}"
 
 bam="${bamdir}/${name}_"
 counts="${countsdir}/${name}_counts.txt"
@@ -64,22 +65,23 @@ bw="${bwDir}/${name}.bw"
   control=${control:-156_fsd1GFP_OX2}
 
   deduped_dir=${outdir}/DedupedBams
+  mkdir -p "${deduped_dir}"
   deduped=${deduped_dir}/${name}_deduped.bam
 
   tmpdir=${outdir}/tempFiles
-  mkdir ${tmpdir}
+  mkdir -p "${tmpdir}"
     tmp=${tmpdir}/${accession}_tmp.bam
     tmp2=${tmpdir}/${accession}_tmp2.bam
     tmp3=${tmpdir}/${accession}_tmp3.bam
 
   split_reads=${outdir}/SplitBams
-  mkdir ${split_reads}
+  mkdir -p "${split_reads}"
     forward=${split_reads}/${name}_sense.bam
     reverse=${split_reads}/${name}_antisense.bam
 
 
   tables=${outdir}/EditTables
-  mkdir ${tables}
+  mkdir -p "${tables}"
     forward_table=${tables}/${name}_forward_edits.txt
     reverse_table=${tables}/${name}_reverse_edits.txt
 
@@ -108,7 +110,7 @@ exit 0
 
 #trim reads
 else
-  echo "${line} fsd1 sample!"
+  echo "${accession} fsd1 sample!"
 
   module load Trim_Galore/0.6.10-GCCcore-12.3.0
 
@@ -222,4 +224,6 @@ bamtools filter -script filter_rev.txt -in ${deduped} -out ${reverse}
 
 
 deactivate
+
+fi
 

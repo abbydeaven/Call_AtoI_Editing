@@ -17,7 +17,7 @@ fi
 #iterates through list of accessions and passes to mapping script
 
 outdir="../RNAseq_Output"
-mkdir $outdir
+mkdir -p $outdir
 fastqPath="${outdir}/fastqFiles/FSD1_RNAseq" #fastq directory generate by https://github.com/UGALewisLab/downloadSRA.gi
 script_dir=$(cd "$(dirname "$0")" && pwd)
 control_name="156_fsd1GFP_OX2"
