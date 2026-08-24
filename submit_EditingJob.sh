@@ -15,8 +15,9 @@ fi
 
 #iterates through list of accessions and passes to mapping script
 
-outdir="../MappingOutput"
-bamPath="${outdir}/FastqFiles" #fastq directory generate by https://github.com/UGALewisLab/downloadSRA.git
+outdir="../RNAseq_Output"
+mkdir $outdir
+fastqPath="${outdir}/fastqFiles/FSD1_RNAseq" #fastq directory generate by https://github.com/UGALewisLab/downloadSRA.git
 
 
 while read -r line
