@@ -153,7 +153,7 @@ trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -
    module load deepTools/3.5.5-gfbf-2023a
     #Plot all reads
    bamCoverage -p $THREADS -bs 50 --normalizeUsing BPM -of bigwig -b "${bam}Aligned.sortedByCoord.out.bam" -o "${bw}"
-
+fi 
 ## EDITING SECTION: Preproccessing bam files
 
 echo "Step 1: Checking and fixing read names..."
@@ -222,8 +222,4 @@ bamtools filter -script filter_rev.txt -in ${deduped} -out ${reverse}
       -v 3 -n 0.03 -a 6-0 -z -e -u \
       -s 2 -S
 
-
 deactivate
-
-fi
-
