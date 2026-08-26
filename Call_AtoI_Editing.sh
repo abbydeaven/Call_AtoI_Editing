@@ -84,7 +84,7 @@ bw="${bwDir}/${name}.bw"
     forward_table=${tables}/${name}_forward_edits.txt
     reverse_table=${tables}/${name}_reverse_edits.txt
 
-ml SAMtools/1.21-GCC-13.3.0
+ml SAMtools/1.18-GCC-12.3.0
 ml picard/3.3.0-Java-17
 ml R/4.4.2-gfbf-2024a
 
@@ -103,8 +103,8 @@ module load Trim_Galore/0.6.10-GCCcore-12.3.0
   trim_galore --illumina --fastqc --paired --length 25 --basename ${dna_name} --gzip -o $trimmed $dna_read1 $dna_read2
   wait
 
-ml SAMtools/1.21-GCC-13.3.0
-ml BWA/0.7.18-GCCcore-13.3.0
+ml SAMtools/1.18-GCC-12.3.0
+ml BWA/0.7.17-GCCcore-12.3.0
   bwa mem -M -v 3 -t $THREADS /home/zlewis/Genomes/Neurospogra/Nc12_RefSeq/GCA_000182925.2_NC12_genomic \
     ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | \
     samtools sort -@ $THREADS -T ${tmpdir}/${accession} -o "${bam}Aligned.sortedByCoord.out.bam" -
@@ -189,7 +189,7 @@ java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
 
 
 
-ml BamTools/2.5.2-GCC-13.3.0
+ml BamTools/2.5.2-GCC-12.3.0
 
 bamtools filter -script filter_forward.txt -in ${deduped} -out ${forward}
   samtools index -@ $THREADS ${forward}

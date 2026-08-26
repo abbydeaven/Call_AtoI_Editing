@@ -22,7 +22,6 @@ fastqPath="../fastqFiles/FSD1_RNAseq" #fastq directory generate by https://githu
 script_dir=$(cd "$(dirname "$0")" && pwd)
 control_name="156_fsd1GFP_OX2"
 control_accessions=(
-	"156-N27_Genomic_fsd1GFP2_OX__Rep1_S166_L003"
 	"156-N28_Genomic_fsd1GFP2_OX__Rep2_S167_L003"
 	"156-N29_Genomic_fsd1GFP2_OX__Rep3_S168_L003"
 )
