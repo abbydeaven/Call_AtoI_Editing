@@ -105,7 +105,7 @@ module load Trim_Galore/0.6.10-GCCcore-12.3.0
 
 ml SAMtools/1.18-GCC-12.3.0
 ml BWA/0.7.17-GCCcore-12.3.0
-  bwa mem -M -v 3 -t $THREADS /home/zlewis/Genomes/Neurospogra/Nc12_RefSeq/GCA_000182925.2_NC12_genomic \
+  bwa mem -M -v 3 -t $THREADS /home/zlewis/Genomes/Neurospora/Nc12_RefSeq/GCA_000182925.2_NC12_genomic \
     ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | \
     samtools sort -@ $THREADS -T ${tmpdir}/${accession} -o "${bam}Aligned.sortedByCoord.out.bam" -
   samtools index -@ $THREADS "${bam}Aligned.sortedByCoord.out.bam"
