@@ -7,8 +7,8 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=64gb
 #SBATCH --time=8:00:00
-#SBATCH --output=../MappingOutput/logs/mapREDI1.%j.out
-#SBATCH --error=../MappingOutput/logs/mapREDI1.%j.err
+#SBATCH --output=../RNAseq_Output/logs/mapREDI1.%j.out
+#SBATCH --error=../RNAseq_Output/logs/mapREDI1.%j.err
 
 
 cd $SLURM_SUBMIT_DIR
@@ -100,13 +100,13 @@ if [[ ${sample_type:-sample} == control ]]; then
 dna_name=$(echo "$accession" | sed -E 's/_S[0-9]{1,3}_L[0-9]{3}//')
 
 module load Trim_Galore/0.6.10-GCCcore-12.3.0
-  trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1 $read2
+  trim_galore --illumina --fastqc --paired --length 25 --basename ${dna_name} --gzip -o $trimmed $dna_read1 $dna_read2
   wait
 
 ml SAMtools/1.21-GCC-13.3.0
 ml BWA/0.7.18-GCCcore-13.3.0
-  bwa mem -M -v 3 -t $THREADS /home/zlewis/Genomes/Neurospora/Nc12_RefSeq/GCA_000182925.2_NC12_genomic \
-    ${trimmed}/${name}_val_1.fq.gz ${trimmed}/${name}_val_2.fq.gz | \
+  bwa mem -M -v 3 -t $THREADS /home/zlewis/Genomes/Neurospogra/Nc12_RefSeq/GCA_000182925.2_NC12_genomic \
+    ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | \
     samtools sort -@ $THREADS -T ${tmpdir}/${accession} -o "${bam}Aligned.sortedByCoord.out.bam" -
   samtools index -@ $THREADS "${bam}Aligned.sortedByCoord.out.bam"
 

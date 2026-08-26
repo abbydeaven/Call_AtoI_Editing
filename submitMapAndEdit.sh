@@ -18,7 +18,7 @@ fi
 
 outdir="../RNAseq_Output"
 mkdir -p $outdir
-fastqPath="${outdir}/fastqFiles/FSD1_RNAseq" #fastq directory generate by https://github.com/UGALewisLab/downloadSRA.gi
+fastqPath="../fastqFiles/FSD1_RNAseq" #fastq directory generate by https://github.com/UGALewisLab/downloadSRA.gi
 script_dir=$(cd "$(dirname "$0")" && pwd)
 control_name="156_fsd1GFP_OX2"
 control_accessions=(
