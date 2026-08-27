@@ -36,6 +36,10 @@ THREADS=12
 ####################################################
 
 ###################################
+
+ml GCC/12.3.0
+ml GCCcore/12.3.0
+
 #input file variables. first check for accessions that have separate folders.
   read1=${fastqPath}/${accession}_1.fastq.gz
   read2=${fastqPath}/${accession}_2.fastq.gz
@@ -58,7 +62,7 @@ mkdir -p "${countsdir}"
 bwDir="${outdir}/bigWig"
 mkdir -p "${bwDir}"
 
-bam="${bamdir}/${name}_"
+bam="${bamdir}/${name}"
 counts="${countsdir}/${name}_counts.txt"
 bw="${bwDir}/${name}.bw"
 
@@ -106,7 +110,7 @@ if [[ ${sample_type:-sample} == control ]]; then
   [[ -f "${genome}" ]] || { echo "Missing reference genome: ${genome}" >&2; exit 1; }
 
 dna_name=$(echo "$accession" | sed -E 's/_S[0-9]{1,3}_L[0-9]{3}//')
-bam_dna="${bamdir}/${dna_name}_"
+bam_dna="${bamdir}/${dna_name}.bam"
 
 module load Trim_Galore/0.6.10-GCCcore-12.3.0
   trim_galore --illumina --fastqc --paired --length 25 --basename ${dna_name} --gzip -o $trimmed $dna_read1 $dna_read2
@@ -114,10 +118,9 @@ module load Trim_Galore/0.6.10-GCCcore-12.3.0
 
 ml SAMtools/1.18-GCC-12.3.0
 ml BWA/0.7.17-GCCcore-12.3.0
-  bwa mem -M -v 3 -t $THREADS "${genome}" \
-    ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | \
-    samtools sort -@ $THREADS -T ${tmpdir}/${accession} -o "${bam_dna}Aligned.sortedByCoord.out.bam" -
-  samtools index -@ $THREADS "${bam_dna}Aligned.sortedByCoord.out.bam"
+
+bwa mem -M -v 3 -t $THREADS $genome ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | samtools view -bhSu - | samtools sort -@ $THREADS -T ${tmp}/${accession} -o "$bam" -
+  samtools index -@ $THREADS "${bam_dna}"
 
 exit 0
 
