@@ -14,6 +14,8 @@
 cd $SLURM_SUBMIT_DIR
 
 THREADS=12
+GENOME="/home/zlewis/Genomes/Neurospora/Nc12_RefSeq/GCA_000182925.2_NC12_genomic"
+
 
 ###ADD a source file with path to FastqF* iles
 #variables imported from submission script
@@ -98,6 +100,7 @@ if [[ ${sample_type:-sample} == control ]]; then
   dna_read2=${fastqPath}/${accession}_R2_001.fastq.gz
 
 dna_name=$(echo "$accession" | sed -E 's/_S[0-9]{1,3}_L[0-9]{3}//')
+dna_bam="${bamdir}/${dna_name}"
 
 module load Trim_Galore/0.6.10-GCCcore-12.3.0
   trim_galore --illumina --fastqc --paired --length 25 --basename ${dna_name} --gzip -o $trimmed $dna_read1 $dna_read2
@@ -105,9 +108,7 @@ module load Trim_Galore/0.6.10-GCCcore-12.3.0
 
 ml SAMtools/1.21-GCC-13.3.0
 ml BWA/0.7.18-GCCcore-13.3.0
-  bwa mem -M -v 3 -t $THREADS /home/zlewis/Genomes/Neurospogra/Nc12_RefSeq/GCA_000182925.2_NC12_genomic \
-    ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | \
-    samtools sort -@ $THREADS -T ${tmpdir}/${accession} -o "${bam}Aligned.sortedByCoord.out.bam" -
+bwa mem -M -v 3 -t $THREADS $GENOME ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | samtools view -bhSu - | samtools sort -@ $THREADS -T $tmp -o "$bam" -
   samtools index -@ $THREADS "${bam}Aligned.sortedByCoord.out.bam"
 
 exit 0
@@ -225,4 +226,3 @@ bamtools filter -script filter_rev.txt -in ${deduped} -out ${reverse}
       -m 20,20 -q 25,25 -c 10,10 \
       -v 3 -n 0.03 -a 6-0 -z -e -u \
       -s 2 -S
-fi
