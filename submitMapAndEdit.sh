@@ -34,26 +34,35 @@ mkdir -p "${outdir}/bigWig" "${outdir}/bedGraph"
 
 control_job_ids=()
 for accession in "${control_accessions[@]}"; do
-	job_id=$(sbatch --parsable \
+	if ! job_id=$(sbatch --parsable2 \
 		--export=ALL,accession="${accession}",fastqPath="${fastqPath}",outdir="${outdir}",sample_type=control \
-		"${script_dir}/Call_AtoI_Editing.sh")
-	control_job_ids+=("${job_id%%;*}")
+		"${script_dir}/Call_AtoI_Editing.sh"); then
+		echo "Failed to submit control mapping job for ${accession}" >&2
+		exit 1
+	fi
+	control_job_ids+=("${job_id}")
 	echo "${accession} control mapping job submitted as ${job_id}"
 done
 
 control_dependency=$(IFS=:; echo "${control_job_ids[*]}")
-merge_job=$(sbatch --parsable \
+if ! merge_job=$(sbatch --parsable2 \
 	--dependency="afterok:${control_dependency}" \
 	--export=ALL,outdir="${outdir}",control_name="${control_name}",control_accessions="$(IFS=,; echo "${control_accessions[*]}")" \
-	"${script_dir}/merge_control_bams.sh")
+	"${script_dir}/merge_control_bams.sh"); then
+	echo "Failed to submit control merge job (dependency: ${control_dependency})" >&2
+	exit 1
+fi
 echo "Control merge job submitted as ${merge_job}"
 
 while read -r line; do
 	[[ -z "${line}" ]] && continue
 	[[ " ${control_accessions[*]} " == *" ${line} "* ]] && continue
-	job_id=$(sbatch --parsable \
-		--dependency="afterok:${merge_job%%;*}" \
+	if ! job_id=$(sbatch --parsable2 \
+		--dependency="afterok:${merge_job}" \
 		--export=ALL,accession="${line}",fastqPath="${fastqPath}",outdir="${outdir}",sample_type=sample \
-		"${script_dir}/Call_AtoI_Editing.sh")
+		"${script_dir}/Call_AtoI_Editing.sh"); then
+		echo "Failed to submit sample job for ${line}" >&2
+		exit 1
+	fi
 	echo "${line} mapping/editing job submitted as ${job_id}"
 done <"$1"
