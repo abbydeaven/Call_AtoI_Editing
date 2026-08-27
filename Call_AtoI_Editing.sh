@@ -100,7 +100,7 @@ if [[ ${sample_type:-sample} == control ]]; then
   dna_read2=${fastqPath}/${accession}_R2_001.fastq.gz
 
 dna_name=$(echo "$accession" | sed -E 's/_S[0-9]{1,3}_L[0-9]{3}//')
-dna_bam="${bamdir}/${dna_name}"
+dna_bam="${bamdir}/${dna_name}.bam"
 
 module load Trim_Galore/0.6.10-GCCcore-12.3.0
   trim_galore --illumina --fastqc --paired --length 25 --basename ${dna_name} --gzip -o $trimmed $dna_read1 $dna_read2
