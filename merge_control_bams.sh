@@ -13,20 +13,20 @@ cd "${SLURM_SUBMIT_DIR}"
 
 ## Make variable names and directories
 outdir="../RNAseq_Output"
-control.name="156_OX2_gDNA"
+control_name="156_OX2_gDNA"
 
 bamdir="${outdir}/bamFiles"
 
   tmpdir=${outdir}/tempFiles
   mkdir -p "${tmpdir}"
-    tmp=${tmpdir}/${control.name}_tmp.bam
-    tmp2=${tmpdir}/${control.name}_tmp2.bam
-    tmp3=${tmpdir}/${control.name}_tmp3.bam
+    tmp=${tmpdir}/${control_name}_tmp.bam
+    tmp2=${tmpdir}/${control_name}_tmp2.bam
+    tmp3=${tmpdir}/${control_	name}_tmp3.bam
 
   split_reads=${outdir}/SplitBams
   mkdir -p "${split_reads}"
-    forward=${split_reads}/${control.name}_sense.bam
-    reverse=${split_reads}/${control.name}_antisense.bam
+    forward=${split_reads}/${control_name}_sense.bam
+    reverse=${split_reads}/${control_name}_antisense.bam
 
 
 module load SAMtools/1.21-GCC-13.3.0
