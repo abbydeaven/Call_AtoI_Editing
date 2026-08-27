@@ -108,8 +108,8 @@ module load Trim_Galore/0.6.10-GCCcore-12.3.0
 
 ml SAMtools/1.21-GCC-13.3.0
 ml BWA/0.7.18-GCCcore-13.3.0
-bwa mem -M -v 3 -t $THREADS $GENOME ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | samtools view -bhSu - | samtools sort -@ $THREADS -T $tmp -o "$bam" -
-  samtools index -@ $THREADS "${bam}Aligned.sortedByCoord.out.bam"
+bwa mem -M -v 3 -t $THREADS $GENOME ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | samtools view -bhSu - | samtools sort -@ $THREADS -T $tmp -o "$dna_bam" -
+  samtools index -@ $THREADS "${dna_bam}"
 
 exit 0
 
