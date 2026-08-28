@@ -16,12 +16,16 @@ outdir="../RNAseq_Output"
 control_name="156_OX2_gDNA"
 
 bamdir="${outdir}/bamFiles"
+deduped_dir="${outdir}/DedupedBams"
+mkdir -p "${deduped_dir}"
+deduped="${deduped_dir}/${control_name}.deduped.bam"
+threads=12
 
   tmpdir=${outdir}/tempFiles
   mkdir -p "${tmpdir}"
     tmp=${tmpdir}/${control_name}_tmp.bam
     tmp2=${tmpdir}/${control_name}_tmp2.bam
-    tmp3=${tmpdir}/${control_	name}_tmp3.bam
+    tmp3=${tmpdir}/${control_name}_tmp3.bam
 
   split_reads=${outdir}/SplitBams
   mkdir -p "${split_reads}"
@@ -31,10 +35,11 @@ bamdir="${outdir}/bamFiles"
 
 module load SAMtools/1.21-GCC-13.3.0
 module load BamTools/2.5.2-GCC-13.3.0
+ml picard/3.3.0-Java-17
 
-merged="${control.name}/156_OX2_gDNA.bam"
+merged="${bamdir}/156_OX2_gDNA.bam"
 samtools merge -@ 4 -o "${merged}" "${bamdir}/156-N28_Genomic_fsd1GFP2_OX__Rep2.bam" "${bamdir}/156-N29_Genomic_fsd1GFP2_OX__Rep3.bam"
-samtools index -@ 4 "${merged}"
+samtools index "${merged}"
 
 ## Preprocess bam file
 echo "Step 1: Checking and fixing read names..."
@@ -56,20 +61,20 @@ samtools view -h ${merged} | \
 samtools addreplacerg -r "@RG\tID:RG1\tSM:SampleName\tPL:Illumina\tLB:Library" -o ${tmp2} ${tmp}
 samtools sort ${tmp2} -o ${tmp3}
 java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
-    --INPUT ${tmp3} \
-    --OUTPUT ${deduped} \
-    -M ${deduped_dir}/merged.marked_dup_metrics.txt \
+  --INPUT "${tmp3}" \
+  --OUTPUT "${deduped}" \
+  --METRICS_FILE "${deduped_dir}/${control_name}.marked_dup_metrics.txt" \
     --OPTICAL_DUPLICATE_PIXEL_DISTANCE -1 --REMOVE_DUPLICATES TRUE
 
     #index again
-    samtools index -@ $THREADS ${deduped}
+  samtools index -@ "${threads}" "${deduped}"
 
 
 
 ml BamTools/2.5.2-GCC-13.3.0
 
-bamtools filter -script filter_forward.txt -in ${deduped} -out ${forward}
-  samtools index -@ $THREADS ${forward}
+bamtools filter -script filter_forward.txt -in "${deduped}" -out "${forward}"
+  samtools index -@ "${threads}" "${forward}"
 
-bamtools filter -script filter_rev.txt -in ${deduped} -out ${reverse}
-  samtools index -@ $THREADS ${reverse}
+bamtools filter -script filter_rev.txt -in "${deduped}" -out "${reverse}"
+  samtools index -@ "${threads}" "${reverse}"
