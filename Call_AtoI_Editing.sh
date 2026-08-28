@@ -49,7 +49,7 @@ mkdir -p "$trimmed"
 ## setting variables
 bamdir="${outdir}/bamFiles"
 mkdir -p "$bamdir"
-bam="${bamdir}/${name}_"
+bam="${bamdir}/${accession}_"
 
 countsdir="${outdir}/counts"
 mkdir -p "${countsdir}"
@@ -57,9 +57,9 @@ mkdir -p "${countsdir}"
 bwDir="${outdir}/bigWig"
 mkdir -p "${bwDir}"
 
-bam="${bamdir}/${name}_"
-counts="${countsdir}/${name}_counts.txt"
-bw="${bwDir}/${name}.bw"
+bam="${bamdir}/${accession}_"
+counts="${countsdir}/${accession}_counts.txt"
+bw="${bwDir}/${accession}.bw"
 
 ## Set variables for editing analysis
   # set genomic DNA control accession
@@ -67,7 +67,7 @@ bw="${bwDir}/${name}.bw"
 
   deduped_dir=${outdir}/DedupedBams
   mkdir -p "${deduped_dir}"
-  deduped=${deduped_dir}/${name}_deduped.bam
+  deduped=${deduped_dir}/${accession}_deduped.bam
 
   tmpdir=${outdir}/tempFiles
   mkdir -p "${tmpdir}"
@@ -77,49 +77,26 @@ bw="${bwDir}/${name}.bw"
 
   split_reads=${outdir}/SplitBams
   mkdir -p "${split_reads}"
-    forward=${split_reads}/${name}_sense.bam
-    reverse=${split_reads}/${name}_antisense.bam
+    forward=${split_reads}/${accession}_sense.bam
+    reverse=${split_reads}/${accession}_antisense.bam
 
 
   tables=${outdir}/EditTables
   mkdir -p "${tables}"
-    forward_table=${tables}/${name}_forward_edits.txt
-    reverse_table=${tables}/${name}_reverse_edits.txt
+    forward_table=${tables}/${accession}_forward_edits.txt
+    reverse_table=${tables}/${accession}_reverse_edits.txt
 
-ml SAMtools/1.21-GCC-13.3.0
 ml picard/3.3.0-Java-17
-ml R/4.4.2-gfbf-2024a
+ml R/4.3.2-gfbf-2023a
 
 ##### PART 1: MAPPING #####
 
-### First check for DNA WGS samples, for A-to-I background mapping. If it is a DNA sample, trim reads and map using BWA then skip to editing section.
-if [[ ${sample_type:-sample} == control ]]; then
-  echo "${accession} DNA control sample!"
-
-  dna_read1=${fastqPath}/${accession}_R1_001.fastq.gz
-  dna_read2=${fastqPath}/${accession}_R2_001.fastq.gz
-
-dna_name=$(echo "$accession" | sed -E 's/_S[0-9]{1,3}_L[0-9]{3}//')
-dna_bam="${bamdir}/${dna_name}.bam"
-
-module load Trim_Galore/0.6.10-GCCcore-12.3.0
-  trim_galore --illumina --fastqc --paired --length 25 --basename ${dna_name} --gzip -o $trimmed $dna_read1 $dna_read2
-  wait
-
-ml SAMtools/1.21-GCC-13.3.0
-ml BWA/0.7.18-GCCcore-13.3.0
-bwa mem -M -v 3 -t $THREADS $GENOME ${trimmed}/${dna_name}_val_1.fq.gz ${trimmed}/${dna_name}_val_2.fq.gz | samtools view -bhSu - | samtools sort -@ $THREADS -T $tmp -o "$dna_bam" -
-  samtools index -@ $THREADS "${dna_bam}"
-
-exit 0
-
 #trim reads
-else
   echo "${accession} fsd1 sample!"
 
   module load Trim_Galore/0.6.10-GCCcore-12.3.0
 
-trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -o $trimmed $read1 $read2
+trim_galore --illumina --fastqc --paired --length 25 --basename ${accession} --gzip -o $trimmed $read1 $read2
   wait
 
 ##map with STAR
@@ -128,13 +105,12 @@ trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -
   --runThreadN $THREADS \
   --genomeDir /home/zlewis/Genomes/Neurospora/Nc12_RefSeq/STAR \
   --outFileNamePrefix ${bam} \
-  --readFilesIn $trimmed/${name}_val_1.fq.gz $trimmed/${name}_val_2.fq.gz \
+  --readFilesIn $trimmed/${accession}_val_1.fq.gz $trimmed/${accession}_val_2.fq.gz \
   --readFilesCommand zcat \
   --alignIntronMax 10000 \
   --outSAMtype BAM SortedByCoordinate \
   --outBAMsortingBinsN 100 \
   --outSAMunmapped Within \
-  --outSAMattributes Standard \
   --limitBAMsortRAM 20455724800 \
   --outSAMattributes NH HI AS nM MD
 
@@ -158,7 +134,6 @@ trim_galore --illumina --fastqc --paired --length 25 --basename ${name} --gzip -
    module load deepTools/3.5.5-gfbf-2023a
     #Plot all reads
    bamCoverage -p $THREADS -bs 50 --normalizeUsing BPM -of bigwig -b "${bam}Aligned.sortedByCoord.out.bam" -o "${bw}"
-fi 
 ## EDITING SECTION: Preproccessing bam files
 
 echo "Step 1: Checking and fixing read names..."
@@ -190,7 +165,7 @@ java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
 
 
 
-ml BamTools/2.5.2-GCC-13.3.0
+ml BamTools/2.5.2-GCC-12.3.0
 
 bamtools filter -script filter_forward.txt -in ${deduped} -out ${forward}
   samtools index -@ $THREADS ${forward}
